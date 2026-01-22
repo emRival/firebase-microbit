@@ -1,6 +1,6 @@
 {
     "name": "firebase-microbit",
-    "version": "0.0.2",
+    "version": "2.1.1",
     "description": "firebase microbit",
     "license": "MIT",
     "dependencies": {
