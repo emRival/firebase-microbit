@@ -84,13 +84,39 @@ namespace esp8266 {
       }
     
       function extractJsonFromResponse(response: string): string {
-        let jsonStart = response.indexOf("{")
-        let jsonEnd = response.lastIndexOf("}")
-        if (jsonStart != -1 && jsonEnd != -1) {
-            return response.substr(jsonStart, jsonEnd - jsonStart + 1)
+        // Find +IPD marker
+        let ipdIndex = response.indexOf("+IPD")
+        if (ipdIndex == -1) return ""
+
+        // Find colon after +IPD (marks start of HTTP response)
+        let colonIndex = response.indexOf(":", ipdIndex)
+        if (colonIndex == -1) return ""
+
+        // Get everything after the colon
+        let httpData = response.substr(colonIndex + 1)
+
+        // Find HTTP body (after headers)
+        // Look for double CRLF that separates headers from body
+        let bodyStart = httpData.indexOf("\r\n\r\n")
+        if (bodyStart != -1) {
+            httpData = httpData.substr(bodyStart + 4)
+        } else {
+            // Alternative: find first { if no clear header separation
+            let jsonStart = httpData.indexOf("{")
+            if (jsonStart != -1) {
+                httpData = httpData.substr(jsonStart)
+            }
         }
-        return ""
-      }
+
+        // Check if response is null
+        if (httpData.includes("null")) return "null"
+
+        // Find JSON object start
+        let braceIndex = httpData.indexOf("{")
+        if (braceIndex == -1) return ""
+
+        return httpData.substr(braceIndex)
+    }
     
       function parseStringToNumber(s: string): number {
         let num = 0
@@ -133,5 +159,5 @@ namespace esp8266 {
         return isNegative ? -num : num
     } 
     
-    
+
 }
